@@ -67,7 +67,13 @@ class ContentImageViewModel: ObservableObject {
 
         // Add word highlight
         if let word = highlights.pointedWord, let frame = imagePage?.wordFrames.wordFrameForWord(word) {
-            frameHighlights[frame] = QuranHighlights.wordHighlightColor
+            // While reciting, the word sits on the ayah's own highlight and needs a
+            // stronger tint to stand out. Dragging the pointer has no tint underneath,
+            // so it keeps the lighter colour.
+            let isReciting = highlights.readingVerses.contains(word.verse)
+            frameHighlights[frame] = isReciting
+                ? QuranHighlights.recitedWordHighlightColor
+                : QuranHighlights.wordHighlightColor
         }
 
         return ImageDecorations(

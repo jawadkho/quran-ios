@@ -98,7 +98,13 @@ final class RecitationWordFollower {
             guard let persistence = self?.persistence else {
                 return
             }
-            let loaded = (try? await persistence.segments(forSura: sura)) ?? []
+            let loaded: [WordSegment]
+            do {
+                loaded = try await persistence.segments(forSura: sura)
+            } catch {
+                logger.error("WordFollower: couldn't load word segments for sura \(sura): \(error)")
+                return
+            }
             guard !Task.isCancelled, let self, loadedSura == sura else {
                 return
             }
