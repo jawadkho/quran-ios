@@ -34,7 +34,9 @@ import TranslationVerseFeature
 import UIKit
 import UIx
 import VLogging
+import Popover_OC
 import WordPointerFeature
+import WordTextService
 
 @MainActor
 protocol QuranPresentable: UIViewController {
@@ -82,6 +84,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         let translationVerseBuilder: TranslationVerseBuilder
         let resources: ReadingResourcesService
         let notesObserver: QuranNotesObserver
+        let wordTextService: WordTextService
         #if QURAN_SYNC
         let ayahNotesBuilder: AyahNotesBuilder
         let bookmarkAyahsBuilder: BookmarkAyahsBuilder
@@ -198,6 +201,28 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     func highlightReadingAyah(_ ayah: AyahNumber?) {
         logger.info("Quran: highlight reading verse \(String(describing: ayah))")
         contentViewModel?.highlightReadingAyah(ayah)
+    }
+
+    /// Follows the reciter: highlights the word and shows its translation above it.
+    ///
+    /// Separate from `highlightWord(_:)` so dragging the word pointer, which drives its
+    /// own popover and magnifier, is untouched.
+    func highlightRecitedWord(_ word: Word?) {
+        contentViewModel?.highlightWord(word)
+
+        guard let word else {
+            hideRecitedWordPopover()
+            return
+        }
+        recitedWordTask?.cancel()
+        recitedWordTask = Task { [weak self] in
+            guard let self else { return }
+            let text = try? await deps.wordTextService.textForWord(word)
+            guard !Task.isCancelled, let text, !text.isEmpty else {
+                return
+            }
+            showRecitedWordPopover(text: text, for: word)
+        }
     }
 
     // MARK: - Ayah Menu
@@ -530,6 +555,45 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     private var isWordPointerActive: Bool = false
     private var isBookmarkMutationInFlight = false
     private var wordPointer: WordPointerViewController?
+
+    // MARK: - Recited word popover
+
+    private var recitedWordTask: Task<Void, Never>?
+    private var recitedWordPopoverWord: Word?
+    private lazy var recitedWordPopover: PopoverView? = presenter.map { PopoverView(view: $0.pagesView) }
+
+    private func showRecitedWordPopover(text: String, for word: Word) {
+        guard let popover = recitedWordPopover,
+              let pagesView = presenter?.pagesView,
+              let globalRect = contentViewController?.rect(for: word)
+        else {
+            hideRecitedWordPopover()
+            return
+        }
+
+        // The popover positions itself relative to the view it was attached to.
+        let rect = pagesView.convert(globalRect, from: nil)
+        // Point at the top edge of the word, and flip below it near the top of the page.
+        let isUpward = rect.minY < pagesView.bounds.height * 0.2
+        let anchor = CGPoint(x: rect.midX, y: isUpward ? rect.maxY : rect.minY)
+
+        recitedWordPopoverWord = word
+        popover.show(
+            to: CGPoint(x: anchor.x, y: anchor.y + (isUpward ? 20 : -20)),
+            isUpward: isUpward,
+            with: [PopoverAction(image: nil, title: text, handler: nil)]
+        )
+    }
+
+    private func hideRecitedWordPopover() {
+        recitedWordTask?.cancel()
+        recitedWordTask = nil
+        guard recitedWordPopoverWord != nil else {
+            return
+        }
+        recitedWordPopoverWord = nil
+        recitedWordPopover?.hideNoAnimation()
+    }
 
     private var visiblePageCancellable: AnyCancellable?
 

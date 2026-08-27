@@ -794,6 +794,7 @@ private func featuresTargets() -> [[Target]] {
             "NoteEditorFeature",
             "NotesFeature",
             "WordPointerFeature",
+            "WordTextService",
             "TranslationsFeature",
             "TranslationVerseFeature",
             "FeaturesSupport",
@@ -801,6 +802,7 @@ private func featuresTargets() -> [[Target]] {
             "NoorUI",
             "ReadingService",
             "QuranLocalization",
+            .product(name: "Popover_OC", package: "Popover"),
         ], testDependencies: [
             "MobileSyncTestSupport",
         ] + mobileSyncTargetDependencies),

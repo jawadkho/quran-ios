@@ -122,6 +122,16 @@ class ContentImageViewModel: ObservableObject {
         return imagePage?.wordFrames.wordAtLocation(localPoint, imageScale: scale)
     }
 
+    /// The inverse of `wordAtGlobalPoint`: where a word sits on screen.
+    func globalRectForWord(_ word: Word) -> CGRect? {
+        guard let frame = imagePage?.wordFrames.wordFrameForWord(word) else {
+            return nil
+        }
+        return frame.rect
+            .scaled(by: scale)
+            .offsetBy(dx: imageFrame.minX, dy: imageFrame.minY)
+    }
+
     // MARK: Private
 
     private let imageDataService: ImageDataService

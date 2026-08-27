@@ -25,6 +25,7 @@ import TranslationsFeature
 import TranslationVerseFeature
 import UIKit
 import WordPointerFeature
+import WordTextService
 
 @MainActor
 public struct QuranBuilder {
@@ -66,6 +67,7 @@ public struct QuranBuilder {
             translationVerseBuilder: TranslationVerseBuilder(container: container),
             resources: container.readingResources,
             notesObserver: notesObserver,
+            wordTextService: WordTextService(fileURL: container.wordsDatabase),
             ayahNotesBuilder: AyahNotesBuilder(container: container),
             bookmarkAyahsBuilder: BookmarkAyahsBuilder(container: container),
             syncedHighlightsObserver: syncedHighlightsObserver,
@@ -88,6 +90,7 @@ public struct QuranBuilder {
             translationVerseBuilder: TranslationVerseBuilder(container: container),
             resources: container.readingResources,
             notesObserver: notesObserver,
+            wordTextService: WordTextService(fileURL: container.wordsDatabase),
             noteEditorBuilder: NoteEditorBuilder(container: container),
             analytics: container.analytics,
             pageBookmarkService: pageBookmarkService,

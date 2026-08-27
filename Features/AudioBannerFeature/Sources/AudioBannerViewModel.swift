@@ -29,8 +29,8 @@ import VLogging
 public protocol AudioBannerListener: AnyObject {
     var visiblePages: [Page] { get }
     func highlightReadingAyah(_ ayah: AyahNumber?)
-    /// The word currently being recited, or nil to clear the highlight.
-    func highlightWord(_ word: Word?)
+    /// The word currently being recited, or nil to clear it.
+    func highlightRecitedWord(_ word: Word?)
 }
 
 private enum PlaybackState {
@@ -395,7 +395,7 @@ public final class AudioBannerViewModel: ObservableObject {
 
     private func setUpWordFollower() {
         wordFollower.onWordChanged = { [weak self] word in
-            self?.listener?.highlightWord(word)
+            self?.listener?.highlightRecitedWord(word)
         }
     }
 
