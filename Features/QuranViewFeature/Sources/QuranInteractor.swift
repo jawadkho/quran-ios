@@ -208,6 +208,10 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     /// Separate from `highlightWord(_:)` so dragging the word pointer, which drives its
     /// own popover and magnifier, is untouched.
     func highlightRecitedWord(_ word: Word?) {
+        // The word pointer switch in the More menu is what turns follow-along on and off.
+        guard isWordPointerActive else {
+            return
+        }
         contentViewModel?.highlightWord(word)
 
         guard let word else {
@@ -486,6 +490,10 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
             }
         } else {
             hideWordPointer()
+            // Follow-along rides on the same switch, so clear whatever it left on screen.
+            // Done directly, because highlightRecitedWord now ignores calls while off.
+            contentViewModel?.highlightWord(nil)
+            hideRecitedWordPopover()
         }
     }
 
