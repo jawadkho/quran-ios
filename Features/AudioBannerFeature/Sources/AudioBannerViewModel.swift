@@ -29,6 +29,8 @@ import VLogging
 public protocol AudioBannerListener: AnyObject {
     var visiblePages: [Page] { get }
     func highlightReadingAyah(_ ayah: AyahNumber?)
+    /// The word currently being recited, or nil to clear the highlight.
+    func highlightWord(_ word: Word?)
 }
 
 private enum PlaybackState {
@@ -77,6 +79,7 @@ public final class AudioBannerViewModel: ObservableObject {
 
         setUpAudioPlayerActions()
         setUpRemoteCommandHandler()
+        setUpWordFollower()
 
         AudioPreferences.shared.$playbackRate.assign(to: &$playbackRate)
     }
@@ -157,6 +160,9 @@ public final class AudioBannerViewModel: ObservableObject {
     private let lastAyahFinder: LastAyahFinder = PreferencesLastAyahFinder.shared
     private let audioPlayer: QuranAudioPlayer
     private let downloader: QuranAudioDownloader
+    private lazy var wordFollower = RecitationWordFollower { [weak self] in
+        self?.audioPlayer.currentFileTime
+    }
     private var remoteCommandsHandler: RemoteCommandsHandler?
     private let reciterListBuilder: ReciterListBuilder
     private let advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder
@@ -196,6 +202,7 @@ public final class AudioBannerViewModel: ObservableObject {
             crashContext.setAudioReciter(id: nil)
         }
         listener?.highlightReadingAyah(nil)
+        wordFollower.stop()
 
         remoteCommandsHandler?.stopListening()
         remoteCommandsHandler?.startListeningToPlayCommand()
@@ -386,13 +393,21 @@ public final class AudioBannerViewModel: ObservableObject {
         audioPlayer.setActions(actions)
     }
 
+    private func setUpWordFollower() {
+        wordFollower.onWordChanged = { [weak self] word in
+            self?.listener?.highlightWord(word)
+        }
+    }
+
     private func playbackPaused() {
         logger.info("AudioBanner: playback paused")
+        wordFollower.pause()
         updatePlayingState(to: .paused)
     }
 
     private func playbackResumed() {
         logger.info("AudioBanner: playback resumed")
+        wordFollower.resume()
         playingState = .playing
     }
 
@@ -400,6 +415,7 @@ public final class AudioBannerViewModel: ObservableObject {
         logger.info("AudioBanner: playing verse \(ayah)")
         crashContext.setPlayingAyah(sura: ayah.sura.suraNumber, ayah: ayah.ayah)
         listener?.highlightReadingAyah(ayah)
+        wordFollower.playing(ayah: ayah, reciter: selectedReciter)
     }
 
     // MARK: - State changes
@@ -412,6 +428,7 @@ public final class AudioBannerViewModel: ObservableObject {
         logger.info("AudioBanner: onPlaybackOrDownloadingCompleted")
 
         crashContext.clearPlayingAyah()
+        wordFollower.stop()
         playingState = .stopped
     }
 

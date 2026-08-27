@@ -627,6 +627,8 @@ private func featuresTargets() -> [[Target]] {
         target(type, name: "AudioBannerFeature", hasTests: false, dependencies: [
             "Caching",
             "AppDependencies",
+            "AudioTimingPersistence",
+            "QuranResources",
             "NoorUI",
             "UIx",
             "ReciterListFeature",

@@ -53,6 +53,18 @@ public class QuranAudioPlayer {
 
     public var actions: QuranAudioPlayerActions?
 
+    /// Playback position within the file currently playing, in seconds.
+    ///
+    /// For a gapless reciter each file is one sura, so this is the position in that
+    /// sura's audio timeline — the timeline word segments are keyed on.
+    public var currentFileTime: TimeInterval? {
+        guard let currentPlayerItem else {
+            return nil
+        }
+        let seconds = currentPlayerItem.currentTime().seconds
+        return seconds.isFinite ? seconds : nil
+    }
+
     public func setActions(_ actions: QuranAudioPlayerActions) {
         self.actions = actions
     }
@@ -129,6 +141,7 @@ public class QuranAudioPlayer {
     private let gappedAudioRequestBuilder: QuranAudioRequestBuilder = GappedAudioRequestBuilder()
     private let gaplessAudioRequestBuilder: QuranAudioRequestBuilder = GaplessAudioRequestBuilder()
     private var audioRequest: QuranAudioRequest?
+    private weak var currentPlayerItem: AVPlayerItem?
 
     // MARK: - AudioPlayerActions
 
@@ -138,6 +151,7 @@ public class QuranAudioPlayer {
         // not interested to get more notifications
         player.actions = nil
         audioRequest = nil
+        currentPlayerItem = nil
     }
 
     private func playbackRateChanged(rate: Float) {
@@ -150,6 +164,7 @@ public class QuranAudioPlayer {
     }
 
     private func audioFrameChanged(fileIndex: Int, frameIndex: Int, playerItem: AVPlayerItem) {
+        currentPlayerItem = playerItem
         guard let audioRequest else {
             return
         }
