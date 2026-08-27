@@ -30,9 +30,9 @@ extension QuranHighlights {
     public static let wordHighlightColor = Color.appIdentity.opacity(opacity)
 
     /// The word being recited sits on top of its ayah's reading highlight, which is
-    /// already `appIdentity` at `opacity`. It needs to be darker than that to be seen
-    /// at all, so it deliberately does not reuse `wordHighlightColor`.
-    public static let recitedWordHighlightColor = Color.appIdentity.opacity(0.75)
+    /// already `appIdentity` at `opacity`. A different hue, rather than a darker shade
+    /// of the same one, is what makes the moving word readable against the static verse.
+    public static let recitedWordHighlightColor = Color(uiColor: .systemOrange).opacity(0.55)
 
     static let readingColor = UIColor.appIdentity.withAlphaComponent(opacity)
     static let shareColor = UIColor.systemBlue.withAlphaComponent(opacity)

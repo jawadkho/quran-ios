@@ -558,9 +558,21 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
     // MARK: - Recited word popover
 
+    /// Distance between the word and the popover's arrow tip.
+    private static let popoverGap: CGFloat = 4
+
+    private static let popoverBackgroundColor = UIColor(red: 38 / 255, green: 38 / 255, blue: 40 / 255, alpha: 1)
+
     private var recitedWordTask: Task<Void, Never>?
     private var recitedWordPopoverWord: Word?
-    private lazy var recitedWordPopover: PopoverView? = presenter.map { PopoverView(view: $0.pagesView) }
+    private lazy var recitedWordPopover: PopoverView? = presenter.map { presenter in
+        let popover = PopoverView(view: presenter.pagesView)
+        // Dark style so the label is drawn white; the background is then overridden
+        // to a neutral charcoal, which competes with neither highlight colour.
+        popover.style = .dark
+        popover.hideAfterTouchOutside = false
+        return popover
+    }
 
     private func showRecitedWordPopover(text: String, for word: Word) {
         guard let popover = recitedWordPopover,
@@ -579,10 +591,12 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
         recitedWordPopoverWord = word
         popover.show(
-            to: CGPoint(x: anchor.x, y: anchor.y + (isUpward ? 20 : -20)),
+            to: CGPoint(x: anchor.x, y: anchor.y + (isUpward ? Self.popoverGap : -Self.popoverGap)),
             isUpward: isUpward,
             with: [PopoverAction(image: nil, title: text, handler: nil)]
         )
+        // Applied after show, which is what sets the style's own background colour.
+        popover.backgroundColor = Self.popoverBackgroundColor
     }
 
     private func hideRecitedWordPopover() {
