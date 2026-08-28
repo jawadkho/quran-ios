@@ -161,7 +161,7 @@ private func modelTargets() -> [[Target]] {
         target(type, name: "QuranGeometry", hasTests: false, dependencies: [
             "QuranKit",
         ]),
-        target(type, name: "QuranAudio", hasTests: false, dependencies: [
+        target(type, name: "QuranAudio", dependencies: [
             "Utilities",
             "QuranKit",
         ]),
@@ -291,9 +291,11 @@ private func dataTargets() -> [[Target]] {
             "AsyncUtilitiesForTesting",
         ]),
 
-        target(type, name: "AudioTimingPersistence", hasTests: false, dependencies: [
+        target(type, name: "AudioTimingPersistence", dependencies: [
             "SQLitePersistence",
             "QuranAudio",
+        ], testResources: [
+            .process("Resources"),
         ]),
 
         target(type, name: "WordFramePersistence", hasTests: false, dependencies: [
@@ -424,8 +426,10 @@ private func domainTargets() -> [[Target]] {
             "SystemDependenciesFake",
         ]),
 
-        target(type, name: "AudioTimingService", hasTests: false, dependencies: [
+        target(type, name: "AudioTimingService", dependencies: [
             "AudioTimingPersistence",
+        ], testDependencies: [
+            "TestResources",
         ]),
 
         target(type, name: "QuranAudioKit", dependencies: [
@@ -606,6 +610,7 @@ private func featuresTargets() -> [[Target]] {
         target(type, name: "WordPointerFeature", hasTests: false, dependencies: [
             "AppDependencies",
             "WordTextService",
+            "QuranKit",
             "NoorUI",
             .product(name: "Popover_OC", package: "Popover"),
         ]),
@@ -624,13 +629,18 @@ private func featuresTargets() -> [[Target]] {
             "QuranLocalization",
         ]),
 
-        target(type, name: "AudioBannerFeature", hasTests: false, dependencies: [
+        target(type, name: "AudioBannerFeature", dependencies: [
             "Caching",
             "AppDependencies",
+            "AudioTimingService",
+            "QuranAudio",
             "NoorUI",
             "UIx",
             "ReciterListFeature",
             "AdvancedAudioOptionsFeature",
+        ], testDependencies: [
+            "TestResources",
+            "AsyncUtilitiesForTesting",
         ]),
 
         target(type, name: "AudioDownloadsFeature", hasTests: false, dependencies: [

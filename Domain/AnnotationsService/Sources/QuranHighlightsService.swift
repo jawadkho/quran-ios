@@ -18,7 +18,13 @@ public final class QuranHighlightsService {
 
     @Published public var highlights = QuranHighlights() {
         didSet {
-            logger.info("Highlights updated")
+            // A heuristic, not a precise test: following a recitation rewrites the
+            // recited word a few times a second and nothing else, and logging those would
+            // bury every other highlight change. A write that changes the recited word
+            // alongside something else, as `reset()` can, is skipped too.
+            if highlights.recitedWord == oldValue.recitedWord {
+                logger.info("Highlights updated")
+            }
         }
     }
 

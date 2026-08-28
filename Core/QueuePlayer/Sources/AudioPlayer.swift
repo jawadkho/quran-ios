@@ -18,9 +18,7 @@ class AudioPlayer {
         playbackRate = rate
         audioPlaying = AudioPlaying(request: request, fileIndex: 0, frameIndex: 0)
         player = Player(url: request.files[0].url)
-        player.onRateChanged = { [weak self] in
-            self?.rateChanged(to: $0)
-        }
+        observePlayer()
         interruptionMonitor.onAudioInterruption = { [weak self] in
             self?.onAudioInterruption(type: $0)
         }
@@ -29,6 +27,17 @@ class AudioPlayer {
     // MARK: Internal
 
     var actions: QueuePlayerActions?
+
+    /// Whether to report the playhead. Off by default; observing costs a main-queue
+    /// callback many times a second, which only the word follower has any use for.
+    var observesPlaybackTime = false {
+        didSet {
+            guard observesPlaybackTime != oldValue else {
+                return
+            }
+            observePlayerTime()
+        }
+    }
 
     // MARK: - Interruption
 
@@ -107,9 +116,24 @@ class AudioPlayer {
 
     private var player: Player {
         didSet {
-            player.onRateChanged = { [weak self] in
-                self?.rateChanged(to: $0)
-            }
+            observePlayer()
+        }
+    }
+
+    private func observePlayer() {
+        player.onRateChanged = { [weak self] in
+            self?.rateChanged(to: $0)
+        }
+        observePlayerTime()
+    }
+
+    private func observePlayerTime() {
+        guard observesPlaybackTime else {
+            player.onTimeChanged = nil
+            return
+        }
+        player.onTimeChanged = { [weak self] seconds in
+            self?.actions?.playbackTimeChanged(seconds)
         }
     }
 
