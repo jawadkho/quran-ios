@@ -23,7 +23,14 @@ public struct QuranHighlights: Equatable {
     public var noteVerses: [AyahNumber: Note] = [:]
     #endif
 
+    /// The word under the drag pointer.
     public var pointedWord: Word?
+
+    /// The word the reciter is currently on.
+    ///
+    /// Kept apart from `pointedWord` so following the recitation and dragging the pointer
+    /// cannot overwrite each other, and so each can be drawn in its own colour.
+    public var recitedWord: Word?
 }
 
 extension QuranHighlights {

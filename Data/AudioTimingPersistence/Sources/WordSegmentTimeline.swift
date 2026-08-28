@@ -15,7 +15,12 @@ public struct WordSegmentTimeline: Sendable, Equatable {
     // MARK: Lifecycle
 
     public init(segments: [WordSegment]) {
-        self.segments = segments.sorted { $0.startMs < $1.startMs }
+        // Swift's sort is not stable, and the table's primary key permits two rows to
+        // share a sura and a start time, so the tie-breakers keep the order — and
+        // therefore the lookup below — reproducible.
+        self.segments = segments.sorted {
+            ($0.startMs, $0.endMs, $0.ayah, $0.position) < ($1.startMs, $1.endMs, $1.ayah, $1.position)
+        }
     }
 
     // MARK: Public

@@ -24,16 +24,43 @@ final class RecitationWordFollowerTests: XCTestCase {
 
     // MARK: - Reciter support
 
-    func testSupportsTheReciterWhoseTimingsShip() {
-        XCTAssertTrue(RecitationWordFollower.supports(husary))
+    /// Gapped reciters have no timing database at all, so there is nothing to read.
+    func testGappedReciterHighlightsNothing() async {
+        let follower = makeFollower()
+        follower.playing(ayah: ayah(1), reciter: reciter(audioType: .gapped))
+        await follower.loadTask?.value
+
+        playhead = 1.2
+        follower.tick()
+
+        XCTAssertEqual(emitted, [])
     }
 
-    func testDoesNotSupportOtherGaplessReciters() {
-        XCTAssertFalse(RecitationWordFollower.supports(reciter(audioType: .gapless(databaseName: "minshawi"))))
+    /// The common case today: a gapless reciter whose downloaded database carries ayah
+    /// timings but no word segments.
+    func testGaplessReciterWithoutWordSegmentsHighlightsNothing() async {
+        let follower = makeFollower(databaseName: "reciter_without_segments")
+        follower.playing(ayah: ayah(1), reciter: husary)
+        await follower.loadTask?.value
+        follower.pause()
+
+        playhead = 1.2
+        follower.tick()
+
+        XCTAssertEqual(emitted, [])
     }
 
-    func testDoesNotSupportGappedReciters() {
-        XCTAssertFalse(RecitationWordFollower.supports(reciter(audioType: .gapped)))
+    /// Any gapless reciter works, so shipping segments for a second one needs no code.
+    func testAnyGaplessReciterWithWordSegmentsIsFollowed() async {
+        let follower = makeFollower()
+        follower.playing(ayah: ayah(1), reciter: reciter(audioType: .gapless(databaseName: "minshawi")))
+        await follower.loadTask?.value
+        follower.pause()
+
+        playhead = 1.2
+        follower.tick()
+
+        XCTAssertEqual(emitted, [word(ayah: 1, position: 1)])
     }
 
     // MARK: - Following
@@ -198,9 +225,16 @@ final class RecitationWordFollowerTests: XCTestCase {
         reciter(audioType: .gapless(databaseName: "husary"))
     }
 
-    private func makeFollower() -> RecitationWordFollower {
+    /// Stands in for the reciter timing databases the app downloads: the fixture for a
+    /// gapless reciter, nothing at all for a gapped one.
+    private func makeFollower(databaseName: String = "word_segments") -> RecitationWordFollower {
         let follower = RecitationWordFollower(
-            persistence: WordSegmentPersistence(fileURL: Bundle.module.url(forResource: "word_segments", withExtension: "db")!),
+            databaseURL: { reciter in
+                guard case .gapless = reciter.audioType else {
+                    return nil
+                }
+                return Bundle.module.url(forResource: databaseName, withExtension: "db")!
+            },
             currentTime: { [weak self] in self?.playhead }
         )
         follower.onWordChanged = { [weak self] word in self?.emitted.append(word) }

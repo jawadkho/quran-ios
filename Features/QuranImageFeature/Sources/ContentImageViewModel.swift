@@ -65,15 +65,15 @@ class ContentImageViewModel: ObservableObject {
             }
         }
 
-        // Add word highlight
+        // Add word highlights. The recited word is drawn last, so it wins the rare frame
+        // where the reader has dragged the pointer onto the word being recited.
         if let word = highlights.pointedWord, let frame = imagePage?.wordFrames.wordFrameForWord(word) {
-            // While reciting, the word sits on the ayah's own highlight and needs a
-            // stronger tint to stand out. Dragging the pointer has no tint underneath,
-            // so it keeps the lighter colour.
-            let isReciting = highlights.readingVerses.contains(word.verse)
-            frameHighlights[frame] = isReciting
-                ? QuranHighlights.recitedWordHighlightColor
-                : QuranHighlights.wordHighlightColor
+            frameHighlights[frame] = QuranHighlights.wordHighlightColor
+        }
+        if let word = highlights.recitedWord, let frame = imagePage?.wordFrames.wordFrameForWord(word) {
+            // The recited word sits on top of its ayah's reading highlight, so it needs a
+            // stronger tint than the drag pointer, which has no tint underneath it.
+            frameHighlights[frame] = QuranHighlights.recitedWordHighlightColor
         }
 
         return ImageDecorations(

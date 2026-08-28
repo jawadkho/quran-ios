@@ -31,6 +31,19 @@ public protocol AudioBannerListener: AnyObject {
     func highlightReadingAyah(_ ayah: AyahNumber?)
     /// The word currently being recited, or nil to clear it.
     func highlightRecitedWord(_ word: Word?)
+
+    /// Whether the listener will do anything with `highlightRecitedWord(_:)`.
+    ///
+    /// Checked before any word-timing work starts, so a reader who has the word pointer
+    /// switched off pays nothing for a feature they cannot see.
+    var followsRecitedWord: Bool { get }
+}
+
+public extension AudioBannerListener {
+    // Defaults keep this source-compatible for existing conformances outside the package.
+    func highlightRecitedWord(_ word: Word?) { }
+
+    var followsRecitedWord: Bool { false }
 }
 
 private enum PlaybackState {
@@ -126,6 +139,12 @@ public final class AudioBannerViewModel: ObservableObject {
             name: UIApplication.willEnterForegroundNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
 
         reciters = await reciterRetreiver.getReciters()
         logger.info("AudioBanner: reciters loaded")
@@ -214,6 +233,17 @@ public final class AudioBannerViewModel: ObservableObject {
         // re-assign playingState to update UI
         let tempPlayingState = playingState
         playingState = tempPlayingState
+
+        if case .playing = playingState {
+            wordFollower.resume()
+        }
+    }
+
+    @objc
+    private func applicationDidEnterBackground() {
+        // Recitation continues with the screen off, but nothing can see the highlight,
+        // so stop waking the main actor to move it.
+        wordFollower.pause()
     }
 
     private func selectReciter(_ reciter: Reciter) {
@@ -416,7 +446,11 @@ public final class AudioBannerViewModel: ObservableObject {
         logger.info("AudioBanner: playing verse \(ayah)")
         crashContext.setPlayingAyah(sura: ayah.sura.suraNumber, ayah: ayah.ayah)
         listener?.highlightReadingAyah(ayah)
-        wordFollower.playing(ayah: ayah, reciter: selectedReciter)
+        if listener?.followsRecitedWord == true {
+            wordFollower.playing(ayah: ayah, reciter: selectedReciter)
+        } else {
+            wordFollower.stop()
+        }
     }
 
     // MARK: - State changes

@@ -84,14 +84,19 @@ public final class WordPointerViewController: UIViewController {
     /// Uses its own popover rather than the dragging one so the two can never fight over
     /// a single instance, and so following along reads as a different, quieter thing than
     /// the magnifier.
-    public func showRecitedWord(_ word: Word, atGlobalRect globalRect: CGRect) async {
-        guard let text = await viewModel.text(for: word), !text.isEmpty else {
-            hideRecitedWord()
+    /// `rect` is read after the translation lookup, so a page that scrolled during the
+    /// lookup — or scrolled out of view entirely — is accounted for.
+    public func showRecitedWord(_ word: Word, rect globalRect: @MainActor () -> CGRect?) async {
+        let text = await viewModel.text(for: word)
+        // Words change roughly twice a second, so a lookup is routinely superseded before
+        // it returns. Checking before either branch matters: letting a cancelled lookup
+        // fall into the hide below would blank the popover the next word just put up.
+        guard !Task.isCancelled else {
             return
         }
-        // Words change ~every half second, so a lookup is routinely superseded before it
-        // returns; showing its result would leave the popover a word behind.
-        guard !Task.isCancelled else {
+        // Not every word has a translation, and a drag popover must not be fought over.
+        guard let text, !text.isEmpty, !isPanning, let globalRect = globalRect() else {
+            hideRecitedWord()
             return
         }
 
@@ -192,6 +197,9 @@ public final class WordPointerViewController: UIViewController {
 
     private var pointerParentSize: CGSize = .zero
 
+    /// True between pan begin and end, while the drag owns the popover.
+    private var isPanning = false
+
     private var startPointerPosition: CGPoint = .zero
 
     private var magnifyingGlass: MagnifyingGlass! {
@@ -256,6 +264,10 @@ public final class WordPointerViewController: UIViewController {
     private func asyncOnPanned(state: GestureState) async {
         switch state {
         case .began:
+            // Suppress the recited-word popover for the duration of the drag, so the two
+            // popovers are never on screen together while audio plays.
+            isPanning = true
+            hideRecitedWord()
             viewModel.viewPanBegan()
             startPointerPosition = CGPoint(x: pointer.frame.minX, y: pointer.frame.minY)
 
@@ -280,6 +292,7 @@ public final class WordPointerViewController: UIViewController {
             }
 
         case .ended(let velocity):
+            isPanning = false
             hideMangifyingGlass()
             hideWordPopover()
             viewModel.unhighlightWord()

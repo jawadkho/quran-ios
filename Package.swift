@@ -631,7 +631,7 @@ private func featuresTargets() -> [[Target]] {
             "Caching",
             "AppDependencies",
             "AudioTimingPersistence",
-            "QuranResources",
+            "QuranAudio",
             "NoorUI",
             "UIx",
             "ReciterListFeature",

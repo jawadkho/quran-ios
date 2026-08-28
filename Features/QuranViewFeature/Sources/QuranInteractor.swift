@@ -200,26 +200,36 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         contentViewModel?.highlightReadingAyah(ayah)
     }
 
+    /// The word pointer switch in the More menu is what turns follow-along on and off.
+    var followsRecitedWord: Bool {
+        isWordPointerActive
+    }
+
     /// Follows the reciter: highlights the word and shows its translation above it.
     ///
     /// Separate from `highlightWord(_:)` so dragging the word pointer, which drives its
     /// own popover and magnifier, is untouched.
     func highlightRecitedWord(_ word: Word?) {
-        // The word pointer switch in the More menu is what turns follow-along on and off.
+        // The banner checks `followsRecitedWord` before it starts, but the switch can go
+        // off while an emission is already in flight.
         guard isWordPointerActive else {
             return
         }
-        contentViewModel?.highlightWord(word)
+        contentViewModel?.highlightRecitedWord(word)
 
         recitedWordTask?.cancel()
         recitedWordTask = nil
 
-        guard let word, let globalRect = contentViewController?.rect(for: word) else {
+        guard let word else {
             wordPointer?.hideRecitedWord()
             return
         }
+        // The rect is read as a closure rather than up front, because the translation
+        // lookup suspends and the page may scroll underneath it in the meantime.
         recitedWordTask = Task { [weak self] in
-            await self?.wordPointer?.showRecitedWord(word, atGlobalRect: globalRect)
+            await self?.wordPointer?.showRecitedWord(word, rect: { [weak self] in
+                self?.visibleRect(for: word)
+            })
         }
     }
 
@@ -488,7 +498,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
             // ignores calls while the switch is off.
             recitedWordTask?.cancel()
             recitedWordTask = nil
-            contentViewModel?.highlightWord(nil)
+            contentViewModel?.highlightRecitedWord(nil)
             wordPointer?.hideRecitedWord()
             hideWordPointer()
         }
@@ -562,6 +572,17 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     private var wordPointer: WordPointerViewController?
 
     private var recitedWordTask: Task<Void, Never>?
+
+    /// Where the word is drawn, or nil when its page is not on screen.
+    ///
+    /// The pager keeps neighbouring pages mounted, so their geometry answers for words the
+    /// reader cannot see; anchoring a popover to one of those would put it off-screen.
+    private func visibleRect(for word: Word) -> CGRect? {
+        guard visiblePages.contains(word.verse.page) else {
+            return nil
+        }
+        return contentViewController?.rect(for: word)
+    }
 
     private var visiblePageCancellable: AnyCancellable?
 

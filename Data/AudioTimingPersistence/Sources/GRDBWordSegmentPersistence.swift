@@ -49,11 +49,17 @@ public struct WordSegmentPersistence {
     // MARK: Public
 
     /// A sura's word spans. Suras the timings do not cover return an empty timeline.
+    ///
+    /// Word segments live in the reciter's own timing database, alongside the ayah
+    /// timings the app already downloads. Reciters whose database predates word-by-word
+    /// data simply have no such table, which reads as "no timings" rather than an error.
     public func timeline(forSura sura: Int) async throws -> WordSegmentTimeline {
         let segments = try await db.read { db in
-            try GRDBWordSegment
+            guard try db.tableExists(GRDBWordSegment.databaseTableName) else {
+                return [WordSegment]()
+            }
+            return try GRDBWordSegment
                 .filter(GRDBWordSegment.Columns.sura == sura)
-                .order(GRDBWordSegment.Columns.startMs)
                 .fetchAll(db)
                 .map(WordSegment.init)
         }
@@ -76,7 +82,6 @@ private struct GRDBWordSegment: Decodable, FetchableRecord, TableRecord {
 
     enum Columns {
         static let sura = Column(CodingKeys.sura)
-        static let startMs = Column(CodingKeys.startMs)
     }
 
     static var databaseTableName: String {

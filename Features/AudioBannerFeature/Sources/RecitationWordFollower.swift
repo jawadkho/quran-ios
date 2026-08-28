@@ -9,7 +9,6 @@ import AudioTimingPersistence
 import Foundation
 import QuranAudio
 import QuranKit
-import QuranResources
 import VLogging
 
 /// Drives the word highlight from the audio player's own clock.
@@ -20,16 +19,18 @@ import VLogging
 /// than a timer started at an ayah boundary. A poll costs one binary search, so the
 /// interval is set by how tight the highlight should track the voice, not by cost.
 ///
-/// Only Al-Husary has word timings today, so every other reciter is a no-op.
+/// Word timings live in the reciter's own timing database, the one the app already
+/// downloads and unzips for every gapless reciter. A reciter whose database carries no
+/// word segments simply never highlights anything, so no reciter is named here.
 @MainActor
 final class RecitationWordFollower {
     // MARK: Lifecycle
 
     init(
-        persistence: WordSegmentPersistence = WordSegmentPersistence(fileURL: QuranResources.wordSegmentsDatabase),
+        databaseURL: @escaping (Reciter) -> URL? = { $0.localDatabasePath?.url },
         currentTime: @escaping @MainActor () -> TimeInterval?
     ) {
-        self.persistence = persistence
+        self.databaseURL = databaseURL
         self.currentTime = currentTime
     }
 
@@ -41,19 +42,31 @@ final class RecitationWordFollower {
     /// The in-flight load of the current sura's timings, so callers can await it.
     private(set) var loadTask: Task<Void, Never>?
 
-    static func supports(_ reciter: Reciter) -> Bool {
-        reciter.audioType == .gapless(databaseName: QuranResources.wordSegmentsReciterDatabaseName)
-    }
-
     /// Called at every ayah boundary. Loads that sura's timings and starts polling.
+    ///
+    /// Gapped reciters have no timing database at all, so they can never be followed.
     func playing(ayah: AyahNumber, reciter: Reciter?) {
-        guard let reciter, Self.supports(reciter) else {
+        guard let reciter, let url = databaseURL(reciter) else {
             stop()
             return
         }
+        if url != currentDatabaseURL {
+            // A different reciter: everything loaded for the previous one is now stale.
+            currentDatabaseURL = url
+            persistence = WordSegmentPersistence(fileURL: url)
+            loadedSura = nil
+            timeline = .empty
+        }
+        let sura = ayah.sura.suraNumber
+        let isNewSura = loadedSura != sura
         quran = ayah.quran
-        load(sura: ayah.sura.suraNumber)
-        startPolling()
+        load(sura: sura)
+        // This runs at every ayah boundary. Poll optimistically while a new sura's
+        // timings load, but once they are known to be empty, leave the loop stopped
+        // rather than restarting it on each of that sura's ayahs.
+        if isNewSura || !timeline.isEmpty {
+            startPolling()
+        }
     }
 
     func stop() {
@@ -103,9 +116,11 @@ final class RecitationWordFollower {
     // `Duration` would read better but needs iOS 16, above this package's minimum.
     private static let pollIntervalNanoseconds: UInt64 = 30 * NSEC_PER_MSEC
 
-    private let persistence: WordSegmentPersistence
+    private let databaseURL: (Reciter) -> URL?
     private let currentTime: @MainActor () -> TimeInterval?
 
+    private var persistence: WordSegmentPersistence?
+    private var currentDatabaseURL: URL?
     private var quran: Quran?
     private var loadedSura: Int?
     private var timeline: WordSegmentTimeline = .empty
@@ -113,25 +128,35 @@ final class RecitationWordFollower {
     private var lastWord: Word?
 
     private func load(sura: Int) {
-        guard loadedSura != sura else {
+        guard loadedSura != sura, let persistence else {
             return
         }
         loadedSura = sura
         timeline = .empty
         loadTask?.cancel()
-        loadTask = Task { [persistence, weak self] in
+        loadTask = Task { [weak self] in
             let loaded: WordSegmentTimeline
             do {
                 loaded = try await persistence.timeline(forSura: sura)
             } catch {
                 logger.error("WordFollower: couldn't load word segments for sura \(sura): \(error)")
+                // Clear the marker so the next ayah boundary retries. A transient failure
+                // — a busy database at startup — must not disable the sura for good.
+                self?.loadedSura = nil
                 return
             }
             guard !Task.isCancelled, let self, loadedSura == sura else {
                 return
             }
             timeline = loaded
-            logger.info("WordFollower: loaded \(loaded.segments.count) word segments for sura \(sura)")
+            if loaded.isEmpty {
+                // Most suras have no word timings. Stop polling rather than waking the
+                // main actor 33 times a second to look at an empty timeline.
+                logger.info("WordFollower: no word segments for sura \(sura); not following")
+                pause()
+            } else {
+                logger.info("WordFollower: loaded \(loaded.segments.count) word segments for sura \(sura)")
+            }
         }
     }
 

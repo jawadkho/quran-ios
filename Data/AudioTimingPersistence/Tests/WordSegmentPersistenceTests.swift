@@ -50,6 +50,16 @@ final class WordSegmentPersistenceTests: XCTestCase {
         XCTAssertEqual(timeline.segment(atMillis: 3100)?.ayah, 2)
     }
 
+    /// Every reciter timing database in the wild predates word-by-word data, so a missing
+    /// table has to read as "nothing to follow" rather than as an error.
+    func testReciterDatabaseWithoutASegmentsTableLoadsAnEmptyTimeline() async throws {
+        let persistence = WordSegmentPersistence(fileURL: fixtureURL(named: "reciter_without_segments"))
+
+        let timeline = try await persistence.timeline(forSura: 1)
+
+        XCTAssertTrue(timeline.isEmpty)
+    }
+
     // MARK: Private
 
     private var persistence: WordSegmentPersistence {
