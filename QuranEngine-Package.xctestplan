@@ -1,303 +1,322 @@
 {
-  "configurations" : [
+  "configurations": [
     {
-      "id" : "E7574424-1A22-490F-ABFD-1131F1BEF026",
-      "name" : "Test Scheme Action",
-      "options" : {
-
-      }
+      "id": "E7574424-1A22-490F-ABFD-1131F1BEF026",
+      "name": "Test Scheme Action",
+      "options": {}
     }
   ],
-  "defaultOptions" : {
-    "environmentVariableEntries" : [
+  "defaultOptions": {
+    "environmentVariableEntries": [
       {
-        "enabled" : false,
-        "key" : "LocalSnapshots",
-        "value" : "TRUE"
+        "enabled": false,
+        "key": "LocalSnapshots",
+        "value": "TRUE"
       }
     ]
   },
-  "testTargets" : [
+  "testTargets": [
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "AppStructureFeatureTests",
-        "name" : "AppStructureFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AppStructureFeatureTests",
+        "name": "AppStructureFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "VerseTextPersistenceTests",
-        "name" : "VerseTextPersistenceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AudioTimingPersistenceTests",
+        "name": "AudioTimingPersistenceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "MoreMenuFeatureTests",
-        "name" : "MoreMenuFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AudioTimingServiceTests",
+        "name": "AudioTimingServiceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "CrashingTests",
-        "name" : "CrashingTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "QuranAudioTests",
+        "name": "QuranAudioTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "BatchDownloaderTests",
-        "name" : "BatchDownloaderTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "VerseTextPersistenceTests",
+        "name": "VerseTextPersistenceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "QuranAudioKitTests",
-        "name" : "QuranAudioKitTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MoreMenuFeatureTests",
+        "name": "MoreMenuFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "QuranKitTests",
-        "name" : "QuranKitTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "CrashingTests",
+        "name": "CrashingTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "QuranLocalizationTests",
-        "name" : "QuranLocalizationTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "BatchDownloaderTests",
+        "name": "BatchDownloaderTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "QuranTextKitTests",
-        "name" : "QuranTextKitTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "QuranAudioKitTests",
+        "name": "QuranAudioKitTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "CachingTests",
-        "name" : "CachingTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "QuranKitTests",
+        "name": "QuranKitTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "LocalizationTests",
-        "name" : "LocalizationTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "QuranLocalizationTests",
+        "name": "QuranLocalizationTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "CoreDataPersistenceTests",
-        "name" : "CoreDataPersistenceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "QuranTextKitTests",
+        "name": "QuranTextKitTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "LastPagePersistenceTests",
-        "name" : "LastPagePersistenceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "CachingTests",
+        "name": "CachingTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "NetworkSupportTests",
-        "name" : "NetworkSupportTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "LocalizationTests",
+        "name": "LocalizationTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "NotePersistenceTests",
-        "name" : "NotePersistenceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "CoreDataPersistenceTests",
+        "name": "CoreDataPersistenceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "PageBookmarkPersistenceTests",
-        "name" : "PageBookmarkPersistenceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "LastPagePersistenceTests",
+        "name": "LastPagePersistenceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "SQLitePersistenceTests",
-        "name" : "SQLitePersistenceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "NetworkSupportTests",
+        "name": "NetworkSupportTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "TranslationServiceTests",
-        "name" : "TranslationServiceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "NotePersistenceTests",
+        "name": "NotePersistenceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "UtilitiesTests",
-        "name" : "UtilitiesTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "PageBookmarkPersistenceTests",
+        "name": "PageBookmarkPersistenceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "AudioUpdaterTests",
-        "name" : "AudioUpdaterTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "SQLitePersistenceTests",
+        "name": "SQLitePersistenceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "ReciterServiceTests",
-        "name" : "ReciterServiceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "TranslationServiceTests",
+        "name": "TranslationServiceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "ReadingServiceTests",
-        "name" : "ReadingServiceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "UtilitiesTests",
+        "name": "UtilitiesTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "WordTextServiceTests",
-        "name" : "WordTextServiceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AudioUpdaterTests",
+        "name": "AudioUpdaterTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "ImageServiceTests",
-        "name" : "ImageServiceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "ReciterServiceTests",
+        "name": "ReciterServiceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "AnnotationsServiceTests",
-        "name" : "AnnotationsServiceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "ReadingServiceTests",
+        "name": "ReadingServiceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "AllTargetsTests",
-        "name" : "AllTargetsTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "WordTextServiceTests",
+        "name": "WordTextServiceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "AppMigratorTests",
-        "name" : "AppMigratorTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "ImageServiceTests",
+        "name": "ImageServiceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "AdvancedAudioOptionsFeatureTests",
-        "name" : "AdvancedAudioOptionsFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AnnotationsServiceTests",
+        "name": "AnnotationsServiceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "AuthenticationClientTests",
-        "name" : "AuthenticationClientTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AllTargetsTests",
+        "name": "AllTargetsTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "AyahMenuFeatureTests",
-        "name" : "AyahMenuFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AppMigratorTests",
+        "name": "AppMigratorTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "BookmarksFeatureTests",
-        "name" : "BookmarksFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AdvancedAudioOptionsFeatureTests",
+        "name": "AdvancedAudioOptionsFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "LinePagePersistenceTests",
-        "name" : "LinePagePersistenceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AuthenticationClientTests",
+        "name": "AuthenticationClientTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "NoteEditorFeatureTests",
-        "name" : "NoteEditorFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "AyahMenuFeatureTests",
+        "name": "AyahMenuFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "NotesFeatureTests",
-        "name" : "NotesFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "BookmarksFeatureTests",
+        "name": "BookmarksFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "QuranViewFeatureTests",
-        "name" : "QuranViewFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "LinePagePersistenceTests",
+        "name": "LinePagePersistenceTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "QuranTranslationFeatureTests",
-        "name" : "QuranTranslationFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "NoteEditorFeatureTests",
+        "name": "NoteEditorFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "SettingsFeatureTests",
-        "name" : "SettingsFeatureTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "NotesFeatureTests",
+        "name": "NotesFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "SyncedPageBookmarkPersistenceTests",
-        "name" : "SyncedPageBookmarkPersistenceTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "QuranViewFeatureTests",
+        "name": "QuranViewFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "NoorUITests",
-        "name" : "NoorUITests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "QuranTranslationFeatureTests",
+        "name": "QuranTranslationFeatureTests"
       }
     },
     {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "UIxTests",
-        "name" : "UIxTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "SettingsFeatureTests",
+        "name": "SettingsFeatureTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "SyncedPageBookmarkPersistenceTests",
+        "name": "SyncedPageBookmarkPersistenceTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "NoorUITests",
+        "name": "NoorUITests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "UIxTests",
+        "name": "UIxTests"
       }
     }
   ],
-  "version" : 1
+  "version": 1
 }

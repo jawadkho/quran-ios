@@ -161,7 +161,7 @@ private func modelTargets() -> [[Target]] {
         target(type, name: "QuranGeometry", hasTests: false, dependencies: [
             "QuranKit",
         ]),
-        target(type, name: "QuranAudio", hasTests: false, dependencies: [
+        target(type, name: "QuranAudio", dependencies: [
             "Utilities",
             "QuranKit",
         ]),
@@ -291,9 +291,11 @@ private func dataTargets() -> [[Target]] {
             "AsyncUtilitiesForTesting",
         ]),
 
-        target(type, name: "AudioTimingPersistence", hasTests: false, dependencies: [
+        target(type, name: "AudioTimingPersistence", dependencies: [
             "SQLitePersistence",
             "QuranAudio",
+        ], testResources: [
+            .process("Resources"),
         ]),
 
         target(type, name: "WordFramePersistence", hasTests: false, dependencies: [
@@ -424,8 +426,10 @@ private func domainTargets() -> [[Target]] {
             "SystemDependenciesFake",
         ]),
 
-        target(type, name: "AudioTimingService", hasTests: false, dependencies: [
+        target(type, name: "AudioTimingService", dependencies: [
             "AudioTimingPersistence",
+        ], testDependencies: [
+            "TestResources",
         ]),
 
         target(type, name: "QuranAudioKit", dependencies: [
