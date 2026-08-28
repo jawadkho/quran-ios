@@ -163,6 +163,7 @@ public final class AudioBannerViewModel: ObservableObject {
     private lazy var wordFollower = RecitationWordFollower { [weak self] in
         self?.audioPlayer.currentFileTime
     }
+
     private var remoteCommandsHandler: RemoteCommandsHandler?
     private let reciterListBuilder: ReciterListBuilder
     private let advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder

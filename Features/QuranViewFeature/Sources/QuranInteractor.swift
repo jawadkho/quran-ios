@@ -34,9 +34,7 @@ import TranslationVerseFeature
 import UIKit
 import UIx
 import VLogging
-import Popover_OC
 import WordPointerFeature
-import WordTextService
 
 @MainActor
 protocol QuranPresentable: UIViewController {
@@ -84,7 +82,6 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         let translationVerseBuilder: TranslationVerseBuilder
         let resources: ReadingResourcesService
         let notesObserver: QuranNotesObserver
-        let wordTextService: WordTextService
         #if QURAN_SYNC
         let ayahNotesBuilder: AyahNotesBuilder
         let bookmarkAyahsBuilder: BookmarkAyahsBuilder
@@ -214,18 +211,15 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         }
         contentViewModel?.highlightWord(word)
 
-        guard let word else {
-            hideRecitedWordPopover()
+        recitedWordTask?.cancel()
+        recitedWordTask = nil
+
+        guard let word, let globalRect = contentViewController?.rect(for: word) else {
+            wordPointer?.hideRecitedWord()
             return
         }
-        recitedWordTask?.cancel()
         recitedWordTask = Task { [weak self] in
-            guard let self else { return }
-            let text = try? await deps.wordTextService.textForWord(word)
-            guard !Task.isCancelled, let text, !text.isEmpty else {
-                return
-            }
-            showRecitedWordPopover(text: text, for: word)
+            await self?.wordPointer?.showRecitedWord(word, atGlobalRect: globalRect)
         }
     }
 
@@ -489,11 +483,14 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
                 showWordPointer(referenceView: presenter.pagesView)
             }
         } else {
-            hideWordPointer()
-            // Follow-along rides on the same switch, so clear whatever it left on screen.
-            // Done directly, because highlightRecitedWord now ignores calls while off.
+            // Follow-along rides on the same switch, so clear whatever it left on screen
+            // before the pointer goes away. Done directly, because highlightRecitedWord
+            // ignores calls while the switch is off.
+            recitedWordTask?.cancel()
+            recitedWordTask = nil
             contentViewModel?.highlightWord(nil)
-            hideRecitedWordPopover()
+            wordPointer?.hideRecitedWord()
+            hideWordPointer()
         }
     }
 
@@ -564,58 +561,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     private var isBookmarkMutationInFlight = false
     private var wordPointer: WordPointerViewController?
 
-    // MARK: - Recited word popover
-
-    /// Distance between the word and the popover's arrow tip.
-    private static let popoverGap: CGFloat = 4
-
-    private static let popoverBackgroundColor = UIColor(red: 38 / 255, green: 38 / 255, blue: 40 / 255, alpha: 1)
-
     private var recitedWordTask: Task<Void, Never>?
-    private var recitedWordPopoverWord: Word?
-    private lazy var recitedWordPopover: PopoverView? = presenter.map { presenter in
-        let popover = PopoverView(view: presenter.pagesView)
-        // Dark style so the label is drawn white; the background is then overridden
-        // to a neutral charcoal, which competes with neither highlight colour.
-        popover.style = .dark
-        popover.hideAfterTouchOutside = false
-        return popover
-    }
-
-    private func showRecitedWordPopover(text: String, for word: Word) {
-        guard let popover = recitedWordPopover,
-              let pagesView = presenter?.pagesView,
-              let globalRect = contentViewController?.rect(for: word)
-        else {
-            hideRecitedWordPopover()
-            return
-        }
-
-        // The popover positions itself relative to the view it was attached to.
-        let rect = pagesView.convert(globalRect, from: nil)
-        // Point at the top edge of the word, and flip below it near the top of the page.
-        let isUpward = rect.minY < pagesView.bounds.height * 0.2
-        let anchor = CGPoint(x: rect.midX, y: isUpward ? rect.maxY : rect.minY)
-
-        recitedWordPopoverWord = word
-        popover.show(
-            to: CGPoint(x: anchor.x, y: anchor.y + (isUpward ? Self.popoverGap : -Self.popoverGap)),
-            isUpward: isUpward,
-            with: [PopoverAction(image: nil, title: text, handler: nil)]
-        )
-        // Applied after show, which is what sets the style's own background colour.
-        popover.backgroundColor = Self.popoverBackgroundColor
-    }
-
-    private func hideRecitedWordPopover() {
-        recitedWordTask?.cancel()
-        recitedWordTask = nil
-        guard recitedWordPopoverWord != nil else {
-            return
-        }
-        recitedWordPopoverWord = nil
-        recitedWordPopover?.hideNoAnimation()
-    }
 
     private var visiblePageCancellable: AnyCancellable?
 

@@ -33,6 +33,7 @@ public struct WordSegment: Sendable, Hashable {
     public let startMs: Int
     public let endMs: Int
 
+    /// Half-open, so a word ends exactly where the next one starts.
     public func contains(millis: Int) -> Bool {
         millis >= startMs && millis < endMs
     }
@@ -47,17 +48,16 @@ public struct WordSegmentPersistence {
 
     // MARK: Public
 
-    /// All spans for a sura, ordered by start time. Suras with no timings return an empty array.
-    public func segments(forSura sura: Int) async throws -> [WordSegment] {
-        try await db.read { db in
+    /// A sura's word spans. Suras the timings do not cover return an empty timeline.
+    public func timeline(forSura sura: Int) async throws -> WordSegmentTimeline {
+        let segments = try await db.read { db in
             try GRDBWordSegment
                 .filter(GRDBWordSegment.Columns.sura == sura)
                 .order(GRDBWordSegment.Columns.startMs)
                 .fetchAll(db)
-                .map {
-                    WordSegment(sura: $0.sura, ayah: $0.ayah, position: $0.position, startMs: $0.start_ms, endMs: $0.end_ms)
-                }
+                .map(WordSegment.init)
         }
+        return WordSegmentTimeline(segments: segments)
     }
 
     // MARK: Internal
@@ -66,11 +66,17 @@ public struct WordSegmentPersistence {
 }
 
 private struct GRDBWordSegment: Decodable, FetchableRecord, TableRecord {
+    enum CodingKeys: String, CodingKey {
+        case sura
+        case ayah
+        case position
+        case startMs = "start_ms"
+        case endMs = "end_ms"
+    }
+
     enum Columns {
         static let sura = Column(CodingKeys.sura)
-        static let ayah = Column(CodingKeys.ayah)
-        static let position = Column(CodingKeys.position)
-        static let startMs = Column(CodingKeys.start_ms)
+        static let startMs = Column(CodingKeys.startMs)
     }
 
     static var databaseTableName: String {
@@ -80,6 +86,18 @@ private struct GRDBWordSegment: Decodable, FetchableRecord, TableRecord {
     var sura: Int
     var ayah: Int
     var position: Int
-    var start_ms: Int
-    var end_ms: Int
+    var startMs: Int
+    var endMs: Int
+}
+
+private extension WordSegment {
+    init(_ record: GRDBWordSegment) {
+        self.init(
+            sura: record.sura,
+            ayah: record.ayah,
+            position: record.position,
+            startMs: record.startMs,
+            endMs: record.endMs
+        )
+    }
 }

@@ -46,20 +46,27 @@ AudioBannerViewModel               listener?.highlightRecitedWord(word)
    |
 QuranInteractor                    gated on the word pointer switch
    |-- contentViewModel.highlightWord(word)   -> QuranHighlights.pointedWord -> tinted rect
-   `-- PopoverView on presenter.pagesView     -> the word's translation
+   `-- WordPointerViewController              -> the word's translation, in a popover
 ```
+
+The popover lives in `WordPointerFeature` rather than in `QuranInteractor`, because that
+feature already owns a `PopoverView` and the `WordTextService` lookup behind it. Following
+the reciter reuses both instead of standing up a second copy, which is why
+`QuranViewFeature` needs neither `Popover_OC` nor `WordTextService` as a dependency.
 
 ### The files
 
 | File | Role |
 |---|---|
 | `Domain/QuranResources/Sources/Databases/husary_word_segments.db` | The timings. Bundled by SPM, so no `.xcodeproj` edit is needed. |
-| `Domain/QuranResources/Sources/QuranResources.swift` | `husaryWordSegmentsDatabase` URL. |
-| `Data/AudioTimingPersistence/Sources/GRDBWordSegmentPersistence.swift` | `WordSegment` and `WordSegmentPersistence.segments(forSura:)`. |
+| `Domain/QuranResources/Sources/QuranResources.swift` | `wordSegmentsDatabase` URL and `wordSegmentsReciterDatabaseName`. |
+| `Data/AudioTimingPersistence/Sources/GRDBWordSegmentPersistence.swift` | `WordSegment` and `WordSegmentPersistence.timeline(forSura:)`. |
+| `Data/AudioTimingPersistence/Sources/WordSegmentTimeline.swift` | One sura's spans, and the playhead lookup over them. |
 | `Domain/QuranAudioKit/.../QuranAudioPlayer.swift` | `currentFileTime`, the playhead inside the current sura file. |
 | `Features/AudioBannerFeature/Sources/RecitationWordFollower.swift` | The follower itself. |
 | `Features/AudioBannerFeature/Sources/AudioBannerViewModel.swift` | `AudioBannerListener.highlightRecitedWord(_:)`, lifecycle wiring. |
-| `Features/QuranViewFeature/Sources/QuranInteractor.swift` | The toggle gate, and the popover. |
+| `Features/QuranViewFeature/Sources/QuranInteractor.swift` | The toggle gate, and the hand-off to the word pointer. |
+| `Features/WordPointerFeature/Sources/WordPointerViewController.swift` | `showRecitedWord(_:atGlobalRect:)`, the popover itself. |
 | `Features/QuranPagesFeature/Sources/PageGeometryActions.swift` | `wordRect`, the inverse of `word`. |
 | `Features/QuranImageFeature/Sources/ContentImageViewModel.swift` | `globalRectForWord`, and the highlight colour choice. |
 | `UI/NoorUI/Sources/Theme/QuranHighlights+Theme.swift` | `recitedWordHighlightColor`. |
@@ -229,10 +236,30 @@ with a lead-in. Nothing highlights for the first ~5.6 seconds, which is correct.
    `.gapless(databaseName: "husary")` exactly.
 3. Coverage stays bounded by `words.db` until that ships more suras.
 
+## Tests
+
+| Target | Covers |
+|---|---|
+| `AudioTimingPersistenceTests` | `WordSegmentTimeline` lookup — boundaries, gaps, repeated words, unordered input — and `WordSegmentPersistence` against a fixture DB, including an uncovered sura. |
+| `AudioBannerFeatureTests` | `RecitationWordFollower` — reciter gating, advancing through words, emitting each word once, holding the highlight through silence, and stop/pause/resume. |
+
+Both use a small real SQLite fixture (`Tests/Resources/word_segments.db`) rather than a
+double, following `LinePagePersistenceTests`. The follower tests drive `tick()` directly
+and pause the poll loop, so nothing depends on wall-clock timing.
+
+```bash
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+make test-no-sync TARGET=AudioTimingPersistence
+make test-no-sync TARGET=AudioBannerFeature
+```
+
 ## Package dependencies added
 
 - `AudioBannerFeature` → `AudioTimingPersistence`, `QuranResources`
-- `QuranViewFeature` → `WordTextService`, `Popover_OC`
+- `WordPointerFeature` → `QuranKit` (explicit; it was already there transitively)
+
+`AudioTimingPersistence` and `AudioBannerFeature` gained test targets, so both are now
+listed in `QuranEngine-Package.xctestplan`.
 
 ## Build hygiene
 

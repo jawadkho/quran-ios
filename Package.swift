@@ -291,9 +291,11 @@ private func dataTargets() -> [[Target]] {
             "AsyncUtilitiesForTesting",
         ]),
 
-        target(type, name: "AudioTimingPersistence", hasTests: false, dependencies: [
+        target(type, name: "AudioTimingPersistence", dependencies: [
             "SQLitePersistence",
             "QuranAudio",
+        ], testResources: [
+            .process("Resources"),
         ]),
 
         target(type, name: "WordFramePersistence", hasTests: false, dependencies: [
@@ -606,6 +608,7 @@ private func featuresTargets() -> [[Target]] {
         target(type, name: "WordPointerFeature", hasTests: false, dependencies: [
             "AppDependencies",
             "WordTextService",
+            "QuranKit",
             "NoorUI",
             .product(name: "Popover_OC", package: "Popover"),
         ]),
@@ -624,7 +627,7 @@ private func featuresTargets() -> [[Target]] {
             "QuranLocalization",
         ]),
 
-        target(type, name: "AudioBannerFeature", hasTests: false, dependencies: [
+        target(type, name: "AudioBannerFeature", dependencies: [
             "Caching",
             "AppDependencies",
             "AudioTimingPersistence",
@@ -633,6 +636,8 @@ private func featuresTargets() -> [[Target]] {
             "UIx",
             "ReciterListFeature",
             "AdvancedAudioOptionsFeature",
+        ], testResources: [
+            .process("Resources"),
         ]),
 
         target(type, name: "AudioDownloadsFeature", hasTests: false, dependencies: [
@@ -794,7 +799,6 @@ private func featuresTargets() -> [[Target]] {
             "NoteEditorFeature",
             "NotesFeature",
             "WordPointerFeature",
-            "WordTextService",
             "TranslationsFeature",
             "TranslationVerseFeature",
             "FeaturesSupport",
@@ -802,7 +806,6 @@ private func featuresTargets() -> [[Target]] {
             "NoorUI",
             "ReadingService",
             "QuranLocalization",
-            .product(name: "Popover_OC", package: "Popover"),
         ], testDependencies: [
             "MobileSyncTestSupport",
         ] + mobileSyncTargetDependencies),

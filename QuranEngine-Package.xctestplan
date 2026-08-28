@@ -28,6 +28,20 @@
     {
       "target" : {
         "containerPath" : "container:",
+        "identifier" : "AudioBannerFeatureTests",
+        "name" : "AudioBannerFeatureTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "AudioTimingPersistenceTests",
+        "name" : "AudioTimingPersistenceTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
         "identifier" : "VerseTextPersistenceTests",
         "name" : "VerseTextPersistenceTests"
       }
