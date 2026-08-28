@@ -56,6 +56,16 @@ public final class ContentViewController: UIViewController, UIGestureRecognizerD
         return nil
     }
 
+    /// Where a word sits on screen, in global coordinates, or nil if no visible page draws it.
+    public func rect(for word: Word) -> CGRect? {
+        for action in viewModel.geometryActions {
+            if let rect = action.wordRect(word) {
+                return rect
+            }
+        }
+        return nil
+    }
+
     // MARK: Internal
 
     @objc

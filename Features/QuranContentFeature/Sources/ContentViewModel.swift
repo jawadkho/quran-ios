@@ -123,6 +123,11 @@ public final class ContentViewModel: ObservableObject {
         highlights.pointedWord = word
     }
 
+    /// The word the reciter is on, tracked separately from the drag pointer's word.
+    public func highlightRecitedWord(_ word: Word?) {
+        highlights.recitedWord = word
+    }
+
     public func highlightReadingAyah(_ ayah: AyahNumber?) {
         highlights.readingVerses = [ayah].compactMap { $0 }
     }

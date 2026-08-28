@@ -14,6 +14,9 @@ final class Player {
 
     deinit {
         rateObservation?.invalidate()
+        if let timeObservation {
+            player.removeTimeObserver(timeObservation)
+        }
     }
 
     init(url: URL) {
@@ -36,6 +39,12 @@ final class Player {
     // MARK: Internal
 
     var onRateChanged: (@Sendable @MainActor (Float) -> Void)?
+
+    /// Fires while playing, on the media clock, at `timeObservationInterval`. Setting it
+    /// installs the observation; clearing it removes it, so nothing is observed by default.
+    var onTimeChanged: (@Sendable @MainActor (TimeInterval) -> Void)? {
+        didSet { updateTimeObservation() }
+    }
 
     let playerItem: AVPlayerItem
 
@@ -77,11 +86,38 @@ final class Player {
 
     // MARK: Private
 
+    /// Roughly a third of the shortest recited word, so a highlight lands within a frame
+    /// or two of the voice without observing more often than anything can be drawn.
+    private static let timeObservationInterval = CMTime(value: 50, timescale: 1000)
+
     private let asset: AVURLAsset
     private let player: AVPlayer
+    private var timeObservation: Any?
 
     private var rateObservation: NSKeyValueObservation? {
         didSet { oldValue?.invalidate() }
+    }
+}
+
+private extension Player {
+    func updateTimeObservation() {
+        if let timeObservation {
+            player.removeTimeObserver(timeObservation)
+            self.timeObservation = nil
+        }
+        guard let onTimeChanged else {
+            return
+        }
+        timeObservation = player.addPeriodicTimeObserver(
+            forInterval: Self.timeObservationInterval,
+            queue: .main
+        ) { time in
+            // Safe because the observer is queued on .main, and cheaper than the hop the
+            // rate observation above makes. Revisit both together if that queue changes.
+            MainActor.assumeIsolated {
+                onTimeChanged(time.seconds)
+            }
+        }
     }
 }
 

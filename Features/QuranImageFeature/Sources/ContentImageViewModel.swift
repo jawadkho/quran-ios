@@ -65,9 +65,13 @@ class ContentImageViewModel: ObservableObject {
             }
         }
 
-        // Add word highlight
+        // The recited word is drawn last, so it wins the frame where the pointer has been
+        // dragged onto the word being recited.
         if let word = highlights.pointedWord, let frame = imagePage?.wordFrames.wordFrameForWord(word) {
             frameHighlights[frame] = QuranHighlights.wordHighlightColor
+        }
+        if let word = highlights.recitedWord, let frame = imagePage?.wordFrames.wordFrameForWord(word) {
+            frameHighlights[frame] = QuranHighlights.recitedWordHighlightColor
         }
 
         return ImageDecorations(
@@ -114,6 +118,16 @@ class ContentImageViewModel: ObservableObject {
             y: point.y - imageFrame.minY
         )
         return imagePage?.wordFrames.wordAtLocation(localPoint, imageScale: scale)
+    }
+
+    /// The inverse of `wordAtGlobalPoint`.
+    func globalRectForWord(_ word: Word) -> CGRect? {
+        guard let frame = imagePage?.wordFrames.wordFrameForWord(word) else {
+            return nil
+        }
+        return frame.rect
+            .scaled(by: scale)
+            .offsetBy(dx: imageFrame.minX, dy: imageFrame.minY)
     }
 
     // MARK: Private

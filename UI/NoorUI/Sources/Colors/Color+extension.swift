@@ -23,6 +23,13 @@ public extension UIColor {
     static var appIdentity: UIColor {
         UIColor(named: "appTint", in: .module, compatibleWith: nil) ?? .systemIndigo
     }
+
+    /// Background for the popover naming the word being recited. Neutral, so it competes
+    /// with neither the ayah highlight nor the word highlight drawn under it. Fixed rather
+    /// than dynamic, because the popover draws a light label in both appearances.
+    static var recitedWordPopoverBackground: UIColor {
+        UIColor(red: 38 / 255, green: 38 / 255, blue: 40 / 255, alpha: 1)
+    }
 }
 
 extension UIColor {

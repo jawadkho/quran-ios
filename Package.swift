@@ -610,6 +610,7 @@ private func featuresTargets() -> [[Target]] {
         target(type, name: "WordPointerFeature", hasTests: false, dependencies: [
             "AppDependencies",
             "WordTextService",
+            "QuranKit",
             "NoorUI",
             .product(name: "Popover_OC", package: "Popover"),
         ]),
@@ -628,13 +629,18 @@ private func featuresTargets() -> [[Target]] {
             "QuranLocalization",
         ]),
 
-        target(type, name: "AudioBannerFeature", hasTests: false, dependencies: [
+        target(type, name: "AudioBannerFeature", dependencies: [
             "Caching",
             "AppDependencies",
+            "AudioTimingService",
+            "QuranAudio",
             "NoorUI",
             "UIx",
             "ReciterListFeature",
             "AdvancedAudioOptionsFeature",
+        ], testDependencies: [
+            "TestResources",
+            "AsyncUtilitiesForTesting",
         ]),
 
         target(type, name: "AudioDownloadsFeature", hasTests: false, dependencies: [

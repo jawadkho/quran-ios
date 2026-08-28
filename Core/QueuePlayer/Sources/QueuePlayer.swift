@@ -14,11 +14,13 @@ public struct QueuePlayerActions: Sendable {
     public init(
         playbackEnded: @Sendable @MainActor @escaping () -> Void,
         playbackRateChanged: @Sendable @MainActor @escaping (Float) -> Void,
-        audioFrameChanged: @Sendable @MainActor @escaping (Int, Int, AVPlayerItem) -> Void
+        audioFrameChanged: @Sendable @MainActor @escaping (Int, Int, AVPlayerItem) -> Void,
+        playbackTimeChanged: @Sendable @MainActor @escaping (TimeInterval) -> Void
     ) {
         self.playbackEnded = playbackEnded
         self.playbackRateChanged = playbackRateChanged
         self.audioFrameChanged = audioFrameChanged
+        self.playbackTimeChanged = playbackTimeChanged
     }
 
     // MARK: Internal
@@ -26,6 +28,9 @@ public struct QueuePlayerActions: Sendable {
     let playbackEnded: @Sendable @MainActor () -> Void
     let playbackRateChanged: @Sendable @MainActor (Float) -> Void
     let audioFrameChanged: @Sendable @MainActor (Int, Int, AVPlayerItem) -> Void
+
+    /// Position within the file being played, on the media clock, while playing.
+    let playbackTimeChanged: @Sendable @MainActor (TimeInterval) -> Void
 }
 
 @MainActor
@@ -40,6 +45,7 @@ public class QueuePlayer {
 
     open func play(request: AudioRequest, rate: Float) {
         player = AudioPlayer(request: request, rate: rate)
+        player?.observesPlaybackTime = observesPlaybackTime
         player?.actions = newPlayerActions()
         player?.startPlaying()
     }
@@ -47,6 +53,16 @@ public class QueuePlayer {
     // MARK: Public
 
     public var actions: QueuePlayerActions?
+
+    /// Whether to report the playhead through `QueuePlayerActions.playbackTimeChanged`.
+    public var observesPlaybackTime = false {
+        didSet {
+            guard observesPlaybackTime != oldValue else {
+                return
+            }
+            player?.observesPlaybackTime = observesPlaybackTime
+        }
+    }
 
     public func pause() {
         player?.pause()
@@ -95,6 +111,9 @@ public class QueuePlayer {
             },
             audioFrameChanged: { [weak self] in
                 self?.actions?.audioFrameChanged($0, $1, $2)
+            },
+            playbackTimeChanged: { [weak self] in
+                self?.actions?.playbackTimeChanged($0)
             }
         )
     }
